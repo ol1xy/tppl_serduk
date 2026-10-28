@@ -1,9 +1,8 @@
+extern printf
+
 section .data
-    err_msg db ": файл испорчен", 10
-    err_len equ $ - err_msg
-    colon_space db ": "
-    colon_len equ $ - colon_space
-    newline db 10
+    fmt_res db "%s: %ld", 10, 0
+    fmt_err db "%s: файл испорчен", 10, 0
 
 section .bss
     filename_ptr resq 1
@@ -15,16 +14,17 @@ section .bss
     count_x resq 1
     count_y resq 1
     avg resq 1
-    num_buf resb 32
 
 section .text
-global _start
+global main
 
-_start:
-    cmp qword [rsp], 2
+main:
+    push rbp
+
+    cmp rdi, 2
     jl exit_err_no_name
 
-    mov rax, [rsp + 16]
+    mov rax, [rsi + 8]
     mov [filename_ptr], rax
 
     mov rax, 2
@@ -111,26 +111,15 @@ calc_average:
     idiv qword [count_x]
     mov [avg], rax
 
-    call print_filename
+    mov rdi, fmt_res
+    mov rsi, [filename_ptr]
+    mov rdx, [avg]
+    xor eax, eax
+    call printf
 
-    mov rax, 1
-    mov rdi, 1
-    mov rsi, colon_space
-    mov rdx, colon_len
-    syscall
-
-    mov rax, [avg]
-    call print_number
-
-    mov rax, 1
-    mov rdi, 1
-    mov rsi, newline
-    mov rdx, 1
-    syscall
-
-    mov rax, 60
-    xor rdi, rdi
-    syscall
+    pop rbp
+    xor eax, eax
+    ret
 
 close_and_error:
     mov rax, 3
@@ -139,21 +128,19 @@ close_and_error:
     jmp error
 
 exit_err_no_name:
-    mov rax, 60
-    mov rdi, 1
-    syscall
+    pop rbp
+    mov eax, 1
+    ret
 
 error:
-    call print_filename
-    mov rax, 1
-    mov rdi, 1
-    mov rsi, err_msg
-    mov rdx, err_len
-    syscall
+    mov rdi, fmt_err
+    mov rsi, [filename_ptr]
+    xor eax, eax
+    call printf
 
-    mov rax, 60
-    mov rdi, 1
-    syscall
+    pop rbp
+    mov eax, 1
+    ret
 
 parse_line:
     xor rcx, rcx
@@ -271,74 +258,3 @@ skip_spaces:
 .do_skip:
     inc rsi
     jmp skip_spaces
-
-print_filename:
-    mov rsi, [filename_ptr]
-    xor rdx, rdx
-.len_loop:
-    cmp byte [rsi + rdx], 0
-    je .print
-    inc rdx
-    jmp .len_loop
-.print:
-    mov rax, 1
-    mov rdi, 1
-    syscall
-    ret
-
-print_number:
-    push rbx
-    push r12
-
-    mov r12, rax
-    cmp r12, 0
-    jge .check_zero
-
-    mov byte [num_buf], '-'
-    mov rax, 1
-    mov rdi, 1
-    mov rsi, num_buf
-    mov rdx, 1
-    syscall
-
-    neg r12
-
-.check_zero:
-    cmp r12, 0
-    jne .non_zero
-
-    mov byte [num_buf], '0'
-    mov rax, 1
-    mov rdi, 1
-    mov rsi, num_buf
-    mov rdx, 1
-    syscall
-    pop r12
-    pop rbx
-    ret
-
-.non_zero:
-    mov rax, r12
-    mov rbx, 10
-    lea rdi, [num_buf + 31]
-    mov byte [rdi], 0
-
-.convert_loop:
-    xor rdx, rdx
-    div rbx
-    add dl, '0'
-    dec rdi
-    mov [rdi], dl
-    test rax, rax
-    jnz .convert_loop
-
-    lea rdx, [num_buf + 31]
-    sub rdx, rdi
-    mov rsi, rdi
-    mov rax, 1
-    mov rdi, 1
-    syscall
-
-    pop r12
-    pop rbx
-    ret
