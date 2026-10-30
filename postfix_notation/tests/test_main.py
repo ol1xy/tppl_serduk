@@ -1,6 +1,6 @@
 import sys
 import pytest 
-from src.main import main
+from src.main import StackMachine, main
 
 def test_main_no_arguments(monkeypatch, capsys):
     monkeypatch.setattr(sys, "argv", ["main.py"])
@@ -11,6 +11,9 @@ def test_main_no_arguments(monkeypatch, capsys):
     assert exc_info.value.code == 1
 
     captured = capsys.readouterr()
-    assert "Ошибка: пожалуйста, введите выражение в скобках" in captured.out
+    assert "Ошибка: пожалуйста, введите выражение в кавычках" in captured.out
 
 
+def test_StackMachine_simple_addition():
+    machine = StackMachine()
+    assert machine.evaluate("2 3 +") == 5
