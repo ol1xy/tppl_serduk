@@ -21,7 +21,7 @@
 
 1. Клонируйте репозиторий:                                                                                           
       ```       bash                                                                                           
-      git clone <>                                                                                       
+      git clone <https://github.com/ol1xy/tppl_serduk.git>                                                                                       
       cd postfix_notation    
       ```
 2. Чтобы создать виртуальное окружение и установить все зависимости:
