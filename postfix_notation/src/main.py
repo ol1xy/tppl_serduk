@@ -66,8 +66,6 @@ class StackMachine:
             
 
 
-
-
 def main():
 
     if len(sys.argv) < 2:
@@ -86,8 +84,6 @@ def main():
         print(f"Ошибка в выражении: {e}")
         sys.exit(1)  
 
-    
 
-
-if __name__ == "__main__":
+if __name__ == "__main__": #pragma: no cover
     main()
