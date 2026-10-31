@@ -1,4 +1,5 @@
 import sys
+import math
 
 class StackMachine:
 
@@ -34,7 +35,11 @@ class StackMachine:
 
     def evaluate(self, expression: str):
 
+        self.stack = []
         tokens = expression.split()
+        if not tokens:                                                                                                       
+            raise ValueError("Выражение не должно быть пустым")
+    
         operations = {                                                                                                       
             "+": self._add,                                                                                                  
             "-": self._sub,                                                                                                  
@@ -55,8 +60,14 @@ class StackMachine:
 
             else:
                 num = float(item)
+                if math.isnan(num) or math.isinf(num):
+                    raise ValueError("Недопустимое значение")
+                
                 self.stack.append(num)
             print(f"Стек: {self.stack}")  
+                                                                                                                         
+        if len(self.stack) != 1:                                                                                             
+            raise ValueError("Некорректное выражение: в стеке остались лишние числа")     
 
         result = self.stack.pop()
         if result.is_integer():
